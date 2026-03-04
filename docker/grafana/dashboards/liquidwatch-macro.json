@@ -1,138 +1,147 @@
 ﻿{
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "grafana",
-          "uid": "-- Grafana --"
-        },
-        "enable": true,
-        "hide": true,
-        "iconColor": "rgba(0, 211, 255, 1)",
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
-  "editable": true,
-  "refresh": "10m",
-  "schemaVersion": 39,
-  "style": "dark",
-  "tags": [
-    "liquidwatch",
-    "macro"
-  ],
-  "time": {
-    "from": "2015-01-01",
-    "to": "now"
-  },
-  "title": "LiquidWatch - Contexte Macro UEMOA",
-  "uid": "liquidwatch-macro",
-  "version": 2,
-  "panels": [
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "bfezxt7mkxqf4f"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 1,
-      "targets": [
-        {
-          "format": "time_series",
-          "rawQuery": true,
-          "rawSql": "SELECT date_trunc('month', date)::date AS time, AVG(ratio_liquidite) AS value FROM indicateurs_liquidite GROUP BY 1 ORDER BY 1;",
-          "refId": "A"
-        }
-      ],
-      "title": "Evolution historique du ratio moyen UEMOA",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "bfezxt7mkxqf4f"
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 8
-      },
-      "id": 2,
-      "targets": [
-        {
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH base AS (SELECT pays, date, ratio_liquidite, encours_credits, LAG(encours_credits) OVER (PARTITION BY pays ORDER BY date) AS prev_credit FROM indicateurs_liquidite WHERE date >= NOW()::date - INTERVAL '3 years'), points AS (SELECT pays, date, ratio_liquidite, CASE WHEN prev_credit IS NULL OR prev_credit = 0 THEN NULL ELSE ((encours_credits - prev_credit) / prev_credit) * 100 END AS croissance_credit_pct FROM base) SELECT croissance_credit_pct AS x, ratio_liquidite AS y, pays AS \"Pays (proxy secteur bancaire)\" FROM points WHERE croissance_credit_pct IS NOT NULL ORDER BY date;",
-          "refId": "A"
-        }
-      ],
-      "title": "Correlation credit / liquidite (scatter)",
-      "type": "xychart"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "bfezxt7mkxqf4f"
-      },
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 8
-      },
-      "id": 3,
-      "targets": [
-        {
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT pays AS \"Pays (proxy secteur bancaire)\", EXTRACT(MONTH FROM date)::int AS mois, AVG(ratio_liquidite) AS ratio_moyen FROM indicateurs_liquidite GROUP BY pays, EXTRACT(MONTH FROM date) ORDER BY pays, mois;",
-          "refId": "A"
-        }
-      ],
-      "title": "Heatmap saisonniere (mois x Pays (proxy secteur bancaire))",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "postgres",
-        "uid": "bfezxt7mkxqf4f"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 24,
-        "x": 0,
-        "y": 16
-      },
-      "id": 4,
-      "options": {
-        "content": "Version actuelle : donnees publiques BCEAO/Banque Mondiale agregees au niveau national - proxy du comportement moyen du secteur bancaire de chaque pays UEMOA. Version bank-level : necessite acces aux donnees internes ALM/Tresorerie/Core Banking d'une banque commerciale.",
-        "mode": "markdown"
-      },
-      "title": "Note de perimetre",
-      "type": "text"
-    }
-  ]
-}
+    "annotations":  {
+                        "list":  [
+                                     {
+                                         "builtIn":  1,
+                                         "datasource":  {
+                                                            "type":  "grafana",
+                                                            "uid":  "-- Grafana --"
+                                                        },
+                                         "enable":  true,
+                                         "hide":  true,
+                                         "iconColor":  "rgba(0, 211, 255, 1)",
+                                         "name":  "Annotations \u0026 Alerts",
+                                         "type":  "dashboard"
+                                     }
+                                 ]
+                    },
+    "editable":  true,
+    "refresh":  "10m",
+    "schemaVersion":  39,
+    "style":  "dark",
+    "tags":  [
+                 "liquidwatch",
+                 "macro"
+             ],
+    "time":  {
+                 "from":  "now-12M",
+                 "to":  "now+30d"
+             },
+    "title":  "LiquidWatch - Contexte Macro UEMOA",
+    "uid":  "liquidwatch-macro",
+    "version":  2,
+    "panels":  [
+                   {
+                       "datasource":  {
+                                          "type":  "postgres",
+                                          "uid":  "bfezxt7mkxqf4f"
+                                      },
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percent"
+                                                        },
+                                           "overrides":  [
 
+                                                         ]
+                                       },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "id":  1,
+                       "targets":  [
+                                       {
+                                           "format":  "time_series",
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT date_trunc(\u0027month\u0027, date)::date AS time, AVG(ratio_liquidite) AS value FROM indicateurs_liquidite GROUP BY 1 ORDER BY 1;",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "Evolution historique du ratio moyen UEMOA",
+                       "type":  "timeseries"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "postgres",
+                                          "uid":  "bfezxt7mkxqf4f"
+                                      },
+                       "fieldConfig":  {
+                                           "defaults":  {
+
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  8
+                                   },
+                       "id":  2,
+                       "targets":  [
+                                       {
+                                           "format":  "table",
+                                           "rawQuery":  true,
+                                           "rawSql":  "WITH base AS (SELECT pays, date, ratio_liquidite, encours_credits, LAG(encours_credits) OVER (PARTITION BY pays ORDER BY date) AS prev_credit FROM indicateurs_liquidite WHERE date \u003e= NOW()::date - INTERVAL \u00273 years\u0027), points AS (SELECT pays, date, ratio_liquidite, CASE WHEN prev_credit IS NULL OR prev_credit = 0 THEN NULL ELSE ((encours_credits - prev_credit) / prev_credit) * 100 END AS croissance_credit_pct FROM base) SELECT croissance_credit_pct AS x, ratio_liquidite AS y, pays AS \"Pays (proxy secteur bancaire)\" FROM points WHERE croissance_credit_pct IS NOT NULL ORDER BY date;",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "Correlation credit / liquidite (scatter)",
+                       "type":  "xychart"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "postgres",
+                                          "uid":  "bfezxt7mkxqf4f"
+                                      },
+                       "fieldConfig":  {
+                                           "defaults":  {
+
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  8
+                                   },
+                       "id":  3,
+                       "targets":  [
+                                       {
+                                           "format":  "table",
+                                           "rawQuery":  true,
+                                           "rawSql":  "SELECT pays AS \"Pays (proxy secteur bancaire)\", EXTRACT(MONTH FROM date)::int AS mois, AVG(ratio_liquidite) AS ratio_moyen FROM indicateurs_liquidite GROUP BY pays, EXTRACT(MONTH FROM date) ORDER BY pays, mois;",
+                                           "refId":  "A"
+                                       }
+                                   ],
+                       "title":  "Heatmap saisonniere (mois x Pays (proxy secteur bancaire))",
+                       "type":  "table"
+                   },
+                   {
+                       "datasource":  {
+                                          "type":  "postgres",
+                                          "uid":  "bfezxt7mkxqf4f"
+                                      },
+                       "gridPos":  {
+                                       "h":  4,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  16
+                                   },
+                       "id":  4,
+                       "options":  {
+                                       "content":  "Version actuelle : donnees publiques BCEAO/Banque Mondiale agregees au niveau national - proxy du comportement moyen du secteur bancaire de chaque pays UEMOA. Version bank-level : necessite acces aux donnees internes ALM/Tresorerie/Core Banking d\u0027une banque commerciale.",
+                                       "mode":  "markdown"
+                                   },
+                       "title":  "Note de perimetre",
+                       "type":  "text"
+                   }
+               ]
+}
