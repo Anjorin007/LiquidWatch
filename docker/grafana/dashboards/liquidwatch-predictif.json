@@ -1,0 +1,165 @@
+﻿{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "liquidwatch",
+    "predictif"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "SENEGAL",
+          "value": "SENEGAL"
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "bfezxt7mkxqf4f"
+        },
+        "definition": "SELECT DISTINCT pays AS __text, pays AS __value FROM indicateurs_liquidite ORDER BY 1;",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Pays (proxy secteur bancaire)",
+        "multi": false,
+        "name": "country",
+        "options": [],
+        "query": "SELECT DISTINCT pays AS __text, pays AS __value FROM indicateurs_liquidite ORDER BY 1;",
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-36M",
+    "to": "now+30d"
+  },
+  "title": "LiquidWatch - Analyse Predictive IA",
+  "uid": "liquidwatch-predictif",
+  "version": 4,
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "bfezxt7mkxqf4f"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "targets": [
+        {
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH latest_model AS (SELECT model_version FROM predictions_liquidite WHERE pays = ${country:singlequote} ORDER BY created_at DESC LIMIT 1) SELECT prediction_date AS time, yhat AS value, 'Prediction'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 UNION ALL SELECT prediction_date AS time, yhat_lower_80 AS value, 'IC80_bas'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 UNION ALL SELECT prediction_date AS time, yhat_upper_80 AS value, 'IC80_haut'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 UNION ALL SELECT prediction_date AS time, yhat_lower_95 AS value, 'IC95_bas'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 UNION ALL SELECT prediction_date AS time, yhat_upper_95 AS value, 'IC95_haut'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 ORDER BY time;",
+          "refId": "A"
+        }
+      ],
+      "title": "Prediction Prophet J+30 avec intervalles de confiance",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "bfezxt7mkxqf4f"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 2,
+      "targets": [
+        {
+          "format": "time_series",
+          "rawQuery": true,
+          "rawSql": "WITH latest_model AS (SELECT model_version FROM predictions_liquidite WHERE pays = ${country:singlequote} ORDER BY created_at DESC LIMIT 1) SELECT prediction_date AS time, trend AS value, 'Tendance'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 UNION ALL SELECT prediction_date AS time, monthly AS value, 'Saisonnalite mensuelle'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 UNION ALL SELECT prediction_date AS time, yearly AS value, 'Saisonnalite annuelle'::text AS metric FROM predictions_liquidite p JOIN latest_model m ON p.model_version = m.model_version WHERE p.pays = ${country:singlequote} AND p.horizon_days BETWEEN 1 AND 30 ORDER BY time;",
+          "refId": "A"
+        }
+      ],
+      "title": "Decomposition Prophet (tendance + saisonnalites)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "bfezxt7mkxqf4f"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 3,
+      "targets": [
+        {
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH latest_ratio AS (SELECT DISTINCT ON (pays) pays, ratio_liquidite FROM indicateurs_liquidite ORDER BY pays, date DESC), latest_pred7 AS (SELECT DISTINCT ON (pays) pays, yhat FROM predictions_liquidite WHERE horizon_days = 7 ORDER BY pays, created_at DESC), joined AS (SELECT r.pays, r.ratio_liquidite AS ratio_actuel, p.yhat AS ratio_prevu_j7 FROM latest_ratio r LEFT JOIN latest_pred7 p ON r.pays = p.pays) SELECT pays AS \"Pays (proxy secteur bancaire)\", ratio_actuel, ratio_prevu_j7, CASE WHEN ratio_prevu_j7 IS NULL OR ratio_actuel = 0 THEN NULL ELSE ((ratio_prevu_j7 - ratio_actuel) / ratio_actuel) * 100 END AS variation_pct, CASE WHEN ratio_prevu_j7 < 75 THEN 'CRITIQUE' WHEN ratio_prevu_j7 < 80 THEN 'SURVEILLANCE' ELSE 'OK' END AS statut FROM joined ORDER BY 1;",
+          "refId": "A"
+        }
+      ],
+      "title": "Tableau comparatif UEMOA (proxy secteur bancaire) - actuel vs J+7",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "bfezxt7mkxqf4f"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 4,
+      "options": {
+        "content": "Version actuelle : donnees publiques BCEAO/Banque Mondiale agregees au niveau national - proxy du comportement moyen du secteur bancaire de chaque pays UEMOA. Version bank-level : necessite acces aux donnees internes ALM/Tresorerie/Core Banking d'une banque commerciale.",
+        "mode": "markdown"
+      },
+      "title": "Note de pÃ©rimÃ¨tre",
+      "type": "text"
+    }
+  ]
+}
+
