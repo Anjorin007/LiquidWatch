@@ -1,4 +1,4 @@
-﻿{
+{
     "annotations":  {
                         "list":  [
                                      {
@@ -90,8 +90,8 @@
                                            "refId":  "A"
                                        }
                                    ],
-                       "title":  "Correlation credit / liquidite (scatter)",
-                       "type":  "xychart"
+                       "title":  "Correlation credit / liquidite (table)",
+                       "type":  "table"
                    },
                    {
                        "datasource":  {
